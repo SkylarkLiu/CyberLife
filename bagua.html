@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>太极八卦阵</title>
+    <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Sans+SC:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            overflow: hidden;
+            background: #050508;
+            font-family: 'Noto Sans SC', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        canvas {
+            display: block;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+        }
+
+        /* 覆盖层：标题与信息面板 */
+        .overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            padding: 4vh 2rem 3.5vh;
+            z-index: 10;
+        }
+
+        .title {
+            font-family: 'Ma Shan Zheng', serif;
+            font-size: clamp(2.2rem, 5.5vw, 4.5rem);
+            color: #d4a853;
+            text-shadow: 0 0 60px rgba(212, 168, 83, 0.25),
+                         0 0 120px rgba(212, 168, 83, 0.08);
+            letter-spacing: 0.35em;
+            opacity: 0;
+            animation: fadeSlideIn 1.8s ease forwards 0.3s;
+        }
+
+        .subtitle {
+            font-size: clamp(0.75rem, 1.5vw, 0.95rem);
+            color: rgba(212, 168, 83, 0.3);
+            font-weight: 300;
+            letter-spacing: 0.5em;
+            margin-top: 0.6rem;
+            opacity: 0;
+            animation: fadeSlideIn 1.8s ease forwards 0.8s;
+        }
+
+        .bottom-area {
+            text-align: center;
+        }
+
+        .info-panel {
+            margin-bottom: 1.2rem;
+            padding: 1rem 2.2rem;
+            background: rgba(15, 13, 25, 0.88);
+            border: 1px solid rgba(212, 168, 83, 0.2);
+            border-radius: 10px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: opacity 0.35s ease, transform 0.35s ease;
+            opacity: 0;
+            transform: translateY(12px) scale(0.97);
+            min-width: 200px;
+        }
+        .info-panel.visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        .info-panel .tri-name {
+            display: block;
+            font-family: 'Ma Shan Zheng', serif;
+            font-size: 1.7rem;
+            color: #f0d070;
+            margin-bottom: 0.2rem;
+        }
+        .info-panel .tri-nature {
+            display: block;
+            font-size: 0.85rem;
+            color: rgba(212, 168, 83, 0.65);
+            margin-bottom: 0.45rem;
+            letter-spacing: 0.08em;
+        }
+        .info-panel .tri-desc {
+            display: block;
+            font-size: 0.8rem;
+            color: rgba(232, 213, 163, 0.5);
+            font-weight: 300;
+            line-height: 1.6;
+        }
+
+        .hint {
+            font-size: 0.78rem;
+            color: rgba(212, 168, 83, 0.3);
+            font-weight: 300;
+            letter-spacing: 0.18em;
+            opacity: 0;
+            animation: fadeSlideIn 1.8s ease forwards 1.4s;
+        }
+
+        @keyframes fadeSlideIn {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 减弱动画偏好 */
+        @media (prefers-reduced-motion: reduce) {
+            .title, .subtitle, .hint {
+                animation: none;
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="bagua" aria-label="太极八卦阵动态图"></canvas>
+
+    <div class="overlay" role="presentation">
+        <header style="text-align:center;">
+            <h1 class="title">太极八卦</h1>
+            <p class="subtitle">先天八卦方位</p>
+        </header>
+        <div class="bottom-area">
+            <div id="infoPanel" class="info-panel" role="status" aria-live="polite">
+                <span class="tri-name" id="triName"></span>
+                <span class="tri-nature" id="triNature"></span>
+                <span class="tri-desc" id="triDesc"></span>
+            </div>
+            <p class="hint">悬停卦象查看详情 · 点击触发变化</p>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        'use strict';
+
+        /* ========== 基础设置 ========== */
+        const canvas = document.getElementById('bagua');
+        const ctx = canvas.getContext('2d');
+        const infoPanel = document.getElementById('infoPanel');
+        const triName  = document.getElementById('triName');
+        const triNature = document.getElementById('triNature');
+        const triDesc  = document.getElementById('triDesc');
+
+        let W, H, cx, cy, R;          // 画布尺寸与中心
+        let mx = -9999, my = -9999;   // 鼠标位置
+        let hovered = -1, prevHovered = -1;
+        let t = 0;                     // 累积时间
+        let clickFlash = 0;            // 点击闪光强度
+        let lastTs = 0;
+
+        /* ========== 八卦数据（先天八卦方位，从上方顺时针） ========== */
+        const trigrams = [
+            { name: '乾', nature: '天 · 南',     desc: '刚健中正，自强不息', lines: [1,1,1] },
+            { name: '巽', nature: '风 · 西南',   desc: '柔而能入，顺而从之', lines: [0,1,1] },
+            { name: '坎', nature: '水 · 西',     desc: '险中求通，以诚济险', lines: [0,1,0] },
+            { name: '艮', nature: '山 · 西北',   desc: '知止则止，动静不失', lines: [0,0,1] },
+            { name: '坤', nature: '地 · 北',     desc: '厚德载物，柔顺利贞', lines: [0,0,0] },
+            { name: '震', nature: '雷 · 东北',   desc: '震动奋发，恐惧修省', lines: [1,0,0] },
+            { name: '离', nature: '火 · 东',     desc: '明丽中正，化成天下', lines: [1,0,1] },
+            { name: '兑', nature: '泽 · 东南',   desc: '和悦欢欣，刚中柔外', lines: [1,1,0] },
+        ];
+        // lines[i]: 1=阳爻, 0=阴爻, i=0为上爻, i=2为下爻
+
+        /* ========== 波纹数组 ========== */
+        const ripples = [];
+
+        /* ========== 粒子系统 ========== */
+        const particles = [];
+        const PARTICLE_N = 110;
+
+        function initParticles() {
+            particles.length = 0;
+            for (let i = 0; i < PARTICLE_N; i++) {
+                particles.push({
+                    x: Math.random() * W,
+                    y: Math.random() * H,
+                    r: Math.random() * 1.6 + 0.4,
+                    vx: (Math.random() - 0.5) * 0.18,
+                    vy: (Math.random() - 0.5) * 0.18,
+                    a: Math.random() * 0.35 + 0.08,
+                    ph: Math.random() * Math.PI * 2,
+                });
+            }
+        }
+
+        /* ========== 尺寸计算 ========== */
+        function resize() {
+            W = canvas.width  = window.innerWidth;
+            H = canvas.height = window.innerHeight;
+            cx = W / 2;
+            cy = H / 2;
+            // 主半径：适配不同屏幕
+            R = Math.min(W, H) * (W < 500 ? 0.24 : 0.21);
+        }
+
+        /* ========== 绘制：背景 ========== */
+        function drawBg() {
+            const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(W, H) * 0.72);
+            g.addColorStop(0, '#110f1e');
+            g.addColorStop(0.45, '#0a0914');
+            g.addColorStop(1, '#04040a');
+            ctx.fillStyle = g;
+            ctx.fillRect(0, 0, W, H);
+
+            // 中心光晕（点击时增强）
+            const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, R * 3.2);
+            const ga = 0.055 + clickFlash * 0.18;
+            glow.addColorStop(0, 'rgba(212,168,83,' + ga + ')');
+            glow.addColorStop(0.35, 'rgba(212,168,83,0.015)');
+            glow.addColorStop(1, 'rgba(212,168,83,0)');
+            ctx.fillStyle = glow;
+            ctx.fillRect(0, 0, W, H);
+
+            // 鼠标跟随微弱光点
+            if (mx > 0 && my > 0) {
+                const mg = ctx.createRadialGradient(mx, my, 0, mx, my, 180);
+                mg.addColorStop(0, 'rgba(212,168,83,0.025)');
+                mg.addColorStop(1, 'rgba(212,168,83,0)');
+                ctx.fillStyle = mg;
+                ctx.fillRect(mx - 180, my - 180, 360, 360);
+            }
+        }
+
+        /* ========== 绘制：粒子 ========== */
+        function drawParticles() {
+            for (const p of particles) {
+                p.x += p.vx;
+                p.y += p.vy;
+                if (p.x < -20) p.x += W + 40;
+                if (p.x > W + 20) p.x -= W + 40;
+                if (p.y < -20) p.y += H + 40;
+                if (p.y > H + 20) p.y -= H + 40;
+                const fl = 0.55 + 0.45 * Math.sin(t * 1.4 + p.ph);
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(212,168,83,' + (p.a * fl).toFixed(3) + ')';
+                ctx.fill();
+            }
+        }
+
+        /* ========== 绘制：装饰圆环与刻度 ========== */
+        function drawRings(triRot) {
+            // —— 太极外描边环 ——
+            ctx.beginPath();
+            ctx.arc(cx, cy, R * 1.025, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(212,168,83,0.45)';
+            ctx.lineWidth = 1.8;
+            ctx.stroke();
+
+            // —— 内虚线环 ——
+            ctx.save();
+            ctx.setLineDash([3, 7]);
+            ctx.beginPath();
+            ctx.arc(cx, cy, R * 1.13, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(212,168,83,0.14)';
+            ctx.lineWidth = 0.6;
+            ctx.stroke();
+            ctx.restore();
+
+            // —— 刻度线（64条，对应64卦） ——
+            for (let i = 0; i < 64; i++) {
+                const a = (i / 64) * Math.PI * 2 + triRot * 0.4;
+                const major = i % 8 === 0;
+                const r1 = R * 1.16;
+                const r2 = major ? R * 1.38 : R * 1.27;
+                ctx.beginPath();
+                ctx.moveTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1);
+                ctx.lineTo(cx + Math.cos(a) * r2, cy + Math.sin(a) * r2);
+                ctx.strokeStyle = major ? 'rgba(212,168,83,0.32)' : 'rgba(212,168,83,0.09)';
+                ctx.lineWidth = major ? 1.2 : 0.5;
+                ctx.stroke();
+            }
+
+            // —— 外实线环 ——
+            ctx.beginPath();
+            ctx.arc(cx, cy, R * 1.4, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(212,168,83,0.13)';
+            ctx.lineWidth = 0.6;
+            ctx.stroke();
+
+            // —— 连接线（内环到卦位） ——
+            for (let i = 0; i < 8; i++) {
+                const a = -Math.PI / 2 + i * Math.PI / 4 + triRot;
+                ctx.beginPath();
+                ctx.moveTo(cx + Math.cos(a) * R * 1.16, cy + Math.sin(a) * R * 1.16);
+                ctx.lineTo(cx + Math.cos(a) * R * 1.56, cy + Math.sin(a) * R * 1.56);
+                ctx.strokeStyle = 'rgba(212,168,83,0.1)';
+                ctx.lineWidth = 0.5;
+                ctx.stroke();
+                // 连接点
+                ctx.beginPath();
+                ctx.arc(cx + Math.cos(a) * R * 1.56, cy + Math.sin(a) * R * 1.56, 2.2, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(212,168,83,0.22)';
+                ctx.fill();
+            }
+
+            // —— 卦位环 ——
+            ctx.beginPath();
+            ctx.arc(cx, cy, R * 1.72, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(212,168,83,0.08)';
+            ctx.lineWidth = 0.4;
+            ctx.stroke();
+
+            // —— 最外装饰环 ——
+            ctx.save();
+            ctx.setLineDash([2, 12]);
+            ctx.beginPath();
+            ctx.arc(cx, cy, R * 2.1, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(212,168,83,0.06)';
+            ctx.lineWidth = 0.4;
+            ctx.stroke();
+            ctx.restore();
+
+            // —— 八方方位弧线装饰 ——
+            for (let i = 0; i < 8; i++) {
+                const a0 = -Math.PI / 2 + i * Math.PI / 4 + triRot;
+                const a1 = a0 - Math.PI / 8;
+                const a2 = a0 + Math.PI / 8;
+                ctx.beginPath();
+                ctx.arc(cx, cy, R * 2.1, a1, a2);
+                ctx.strokeStyle = 'rgba(212,168,83,0.12)';
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+        }
+
+        /* ========== 绘制：太极图 ========== */
+        function drawTaichi(rot) {
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.rotate(rot);
+
+            // 裁剪到大圆范围
+            ctx.beginPath();
+            ctx.arc(0, 0, R, 0, Math.PI * 2);
+            ctx.save();
+            ctx.clip();
+
+            // 右半白色
+            ctx.beginPath();
+            ctx.arc(0, 0, R, -Math.PI / 2, Math.PI / 2, false);
+            ctx.fillStyle = '#ede3cc';
+            ctx.fill();
+
+            // 左半深色
+            ctx.beginPath();
+            ctx.arc(0, 0, R, Math.PI / 2, Math.PI * 3 / 2, false);
+            ctx.fillStyle = '#16162c';
+            ctx.fill();
+
+            // S曲线 — 上方白色小圆
+            ctx.beginPath();
+            ctx.arc(0, -R / 2, R / 2, 0, Math.PI * 2);
+            ctx.fillStyle = '#ede3cc';
+            ctx.fill();
+
+            // S曲线 — 下方深色小圆
+            ctx.beginPath();
+            ctx.arc(0, R / 2, R / 2, 0, Math.PI * 2);
+            ctx.fillStyle = '#16162c';
+            ctx.fill();
+
+            // 鱼眼 — 上方深色
+            ctx.beginPath();
+            ctx.arc(0, -R / 2, R * 0.115, 0, Math.PI * 2);
+            ctx.fillStyle = '#16162c';
+            ctx.fill();
+
+            // 鱼眼 — 下方白色
+            ctx.beginPath();
+            ctx.arc(0, R / 2, R * 0.115, 0, Math.PI * 2);
+            ctx.fillStyle = '#ede3cc';
+            ctx.fill();
+
+            // 鱼眼微光
+            ctx.beginPath();
+            ctx.arc(-R * 0.025, -R / 2 - R * 0.03, R * 0.035, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(212,168,83,0.25)';
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(-R * 0.025, R / 2 - R * 0.03, R * 0.035, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(212,168,83,0.15)';
+            ctx.fill();
+
+            ctx.restore(); // 移除clip
+
+            // 金色描边
+            ctx.beginPath();
+            ctx.arc(0, 0, R, 0, Math.PI * 2);
+            ctx.strokeStyle = '#d4a853';
+            ctx.lineWidth = 2.2;
+            ctx.stroke();
+
+            // 外发光
+            ctx.beginPath();
+            ctx.arc(0, 0, R + 4, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(212,168,83,0.12)';
+            ctx.lineWidth = 6;
+            ctx.stroke();
+
+            ctx.restore();
+        }
+
+        /* ========== 绘制：卦象符号 ========== */
+        function drawTrigram(x, y, lines, size, isHov) {
+            const lw = size * 0.72;       // 爻总宽
+            const lh = size * 0.145;      // 爻高
+            const gap = size * 0.28;      // 爻间距
+
+            ctx.save();
+            ctx.translate(x, y);
+
+            // 悬停光晕
+            if (isHov) {
+                const g = ctx.createRadialGradient(0, 0, 0, 0, 0, size * 0.9);
+                g.addColorStop(0, 'rgba(240,208,112,0.16)');
+                g.addColorStop(0.6, 'rgba(240,208,112,0.04)');
+                g.addColorStop(1, 'rgba(240,208,112,0)');
+                ctx.fillStyle = g;
+                ctx.beginPath();
+                ctx.arc(0, 0, size * 0.9, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            const col = isHov ? '#f0d070' : '#d4a853';
+            ctx.fillStyle = col;
+
+            for (let i = 0; i < 3; i++) {
+                const ly = (i - 1) * gap; // i=0上, i=2下
+
+                if (lines[i] === 1) {
+                    // 阳爻
+                    ctx.fillRect(-lw / 2, ly - lh / 2, lw, lh);
+                } else {
+                    // 阴爻 — 两段
+                    const seg = lw * 0.37;
+                    const sep = lw * 0.26;
+                    ctx.fillRect(-lw / 2, ly - lh / 2, seg, lh);
+                    ctx.fillRect(-lw / 2 + seg + sep, ly - lh / 2, seg, lh);
+                }
+            }
+
+            ctx.restore();
+        }
+
+        /* ========== 获取卦象当前位置 ========== */
+        function triPos(idx, rot) {
+            const a = -Math.PI / 2 + idx * Math.PI / 4 + rot;
+            return {
+                x: cx + Math.cos(a) * R * 1.72,
+                y: cy + Math.sin(a) * R * 1.72,
+            };
+        }
+
+        /* ========== 绘制：波纹 ========== */
+        function drawRipples(dt) {
+            for (let i = ripples.length - 1; i >= 0; i--) {
+                const r = ripples[i];
+                r.rad += dt * 120;
+                r.a = 1 - r.rad / r.max;
+                if (r.a <= 0) { ripples.splice(i, 1); continue; }
+                ctx.beginPath();
+                ctx.arc(r.x, r.y, r.rad, 0, Math.PI * 2);
+                ctx.strokeStyle = 'rgba(212,168,83,' + (r.a * 0.55).toFixed(3) + ')';
+                ctx.lineWidth = 1.5 * r.a + 0.3;
+                ctx.stroke();
+            }
+        }
+
+        /* ========== 信息面板更新 ========== */
+        function updatePanel() {
+            if (hovered >= 0) {
+                const d = trigrams[hovered];
+                triName.textContent   = d.name;
+                triNature.textContent = d.nature;
+                triDesc.textContent   = d.desc;
+                infoPanel.classList.add('visible');
+            } else {
+                infoPanel.classList.remove('visible');
+            }
+        }
+
+        /* ========== 主循环 ========== */
+        function frame(ts) {
+            const dt = Math.min((ts - lastTs) / 1000, 0.06);
+            lastTs = ts;
+            t += dt;
+
+            // 旋转速度微调（呼吸感）
+            const sm = 1 + 0.12 * Math.sin(t * 0.28);
+            const taichiRot   =  t * 0.28 * sm;
+            const trigramRot  = -t * 0.13 * sm;
+
+            ctx.clearRect(0, 0, W, H);
+
+            drawBg();
+            drawParticles();
+            drawRings(trigramRot);
+
+            // 检测悬停 & 绘制卦象
+            hovered = -1;
+            const sz = R * 0.42;
+
+            for (let i = 0; i < 8; i++) {
+                const p = triPos(i, trigramRot);
+                const dist = Math.hypot(mx - p.x, my - p.y);
+                const isH = dist < sz * 0.72;
+                if (isH) hovered = i;
+                drawTrigram(p.x, p.y, trigrams[i].lines, sz, isH);
+
+                // 悬停时在卦象旁显示卦名
+                if (isH) {
+                    ctx.save();
+                    ctx.font = (R * 0.2).toFixed(0) + 'px "Ma Shan Zheng", serif';
+                    ctx.fillStyle = 'rgba(240,208,112,0.85)';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    // 卦名位置稍微偏向外侧
+                    const a = -Math.PI / 2 + i * Math.PI / 4 + trigramRot;
+                    const nx = cx + Math.cos(a) * R * 2.05;
+                    const ny = cy + Math.sin(a) * R * 2.05;
+                    ctx.fillText(trigrams[i].name, nx, ny);
+                    ctx.restore();
+                }
+            }
+
+            drawTaichi(taichiRot);
+            drawRipples(dt);
+
+            // 面板更新
+            if (hovered !== prevHovered) {
+                updatePanel();
+                prevHovered = hovered;
+            }
+
+            // 衰减闪光
+            if (clickFlash > 0.005) {
+                clickFlash *= Math.pow(0.04, dt);
+            } else {
+                clickFlash = 0;
+            }
+
+            canvas.style.cursor = hovered >= 0 ? 'pointer' : 'default';
+
+            requestAnimationFrame(frame);
+        }
+
+        /* ========== 事件绑定 ========== */
+        canvas.addEventListener('mousemove', function (e) {
+            mx = e.clientX;
+            my = e.clientY;
+        });
+        canvas.addEventListener('mouseleave', function () {
+            mx = -9999;
+            my = -9999;
+        });
+
+        canvas.addEventListener('click', function () {
+            if (hovered < 0) return;
+            const sm = 1 + 0.12 * Math.sin(t * 0.28);
+            const p = triPos(hovered, -t * 0.13 * sm);
+            ripples.push({ x: p.x, y: p.y, rad: 0, max: R * 1.0, a: 1 });
+            ripples.push({ x: cx, y: cy, rad: 0, max: R * 1.6, a: 0.6 });
+            clickFlash = 1;
+        });
+
+        // 触摸支持
+        canvas.addEventListener('touchstart', function (e) {
+            e.preventDefault();
+            const tc = e.touches[0];
+            mx = tc.clientX;
+            my = tc.clientY;
+            // 延迟一帧后检测点击
+            requestAnimationFrame(function () {
+                if (hovered >= 0) {
+                    const sm = 1 + 0.12 * Math.sin(t * 0.28);
+                    const p = triPos(hovered, -t * 0.13 * sm);
+                    ripples.push({ x: p.x, y: p.y, rad: 0, max: R * 1.0, a: 1 });
+                    ripples.push({ x: cx, y: cy, rad: 0, max: R * 1.6, a: 0.6 });
+                    clickFlash = 1;
+                }
+            });
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', function (e) {
+            const tc = e.touches[0];
+            mx = tc.clientX;
+            my = tc.clientY;
+        });
+
+        canvas.addEventListener('touchend', function () {
+            mx = -9999;
+            my = -9999;
+        });
+
+        window.addEventListener('resize', function () {
+            resize();
+            initParticles();
+        });
+
+        /* ========== 启动 ========== */
+        resize();
+        initParticles();
+        requestAnimationFrame(frame);
+    })();
+    </script>
+</body>
+</html>

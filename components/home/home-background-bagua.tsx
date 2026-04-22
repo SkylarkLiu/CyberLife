@@ -150,7 +150,7 @@ export function HomeBackgroundBagua({ variant = "home" }: HomeBackgroundBaguaPro
         const twinkle = 0.45 + 0.55 * Math.sin(time * 0.0007 + particle.phase);
         context.beginPath();
         context.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
-        context.fillStyle = `rgba(213, 221, 255, ${particle.alpha * twinkle})`;
+        context.fillStyle = `rgba(247, 239, 224, ${particle.alpha * twinkle})`;
         context.fill();
       }
 
@@ -159,15 +159,15 @@ export function HomeBackgroundBagua({ variant = "home" }: HomeBackgroundBaguaPro
       const lineAlpha = variant === "home" ? 0.16 : 0.1;
 
       const halo = context.createRadialGradient(centerX, centerY, 0, centerX, centerY, radius * 3.4);
-      halo.addColorStop(0, variant === "home" ? "rgba(246, 200, 123, 0.1)" : "rgba(246, 200, 123, 0.07)");
-      halo.addColorStop(0.35, "rgba(118, 138, 255, 0.05)");
+      halo.addColorStop(0, variant === "home" ? "rgba(211, 176, 107, 0.11)" : "rgba(211, 176, 107, 0.07)");
+      halo.addColorStop(0.35, "rgba(158, 45, 52, 0.04)");
       halo.addColorStop(1, "rgba(0, 0, 0, 0)");
       context.fillStyle = halo;
       context.fillRect(0, 0, width, height);
 
       context.beginPath();
       context.arc(centerX, centerY, radius * 1.02, 0, Math.PI * 2);
-      context.strokeStyle = `rgba(246, 200, 123, ${variant === "home" ? 0.28 : 0.18})`;
+      context.strokeStyle = `rgba(211, 176, 107, ${variant === "home" ? 0.28 : 0.18})`;
       context.lineWidth = 1.4;
       context.stroke();
 
@@ -175,7 +175,7 @@ export function HomeBackgroundBagua({ variant = "home" }: HomeBackgroundBaguaPro
       context.setLineDash([3, 8]);
       context.beginPath();
       context.arc(centerX, centerY, radius * 1.14, 0, Math.PI * 2);
-      context.strokeStyle = `rgba(246, 200, 123, ${variant === "home" ? 0.12 : 0.08})`;
+      context.strokeStyle = `rgba(211, 176, 107, ${variant === "home" ? 0.12 : 0.08})`;
       context.lineWidth = 0.7;
       context.stroke();
       context.restore();
@@ -191,14 +191,14 @@ export function HomeBackgroundBagua({ variant = "home" }: HomeBackgroundBaguaPro
         );
         context.strokeStyle = isMajor
           ? `rgba(246, 200, 123, ${variant === "home" ? 0.16 : 0.11})`
-          : `rgba(246, 200, 123, ${variant === "home" ? 0.06 : 0.045})`;
+          : `rgba(211, 176, 107, ${variant === "home" ? 0.06 : 0.045})`;
         context.lineWidth = isMajor ? 1 : 0.5;
         context.stroke();
       }
 
       context.beginPath();
       context.arc(centerX, centerY, radius * 1.7, 0, Math.PI * 2);
-      context.strokeStyle = `rgba(246, 200, 123, ${variant === "home" ? 0.08 : 0.05})`;
+      context.strokeStyle = `rgba(211, 176, 107, ${variant === "home" ? 0.08 : 0.05})`;
       context.lineWidth = 0.6;
       context.stroke();
 
@@ -213,12 +213,12 @@ export function HomeBackgroundBagua({ variant = "home" }: HomeBackgroundBaguaPro
 
       context.beginPath();
       context.arc(0, 0, radius, -Math.PI / 2, Math.PI / 2);
-      context.fillStyle = "rgba(243, 234, 212, 0.92)";
+      context.fillStyle = "rgba(246, 238, 225, 0.9)";
       context.fill();
 
       context.beginPath();
       context.arc(0, -radius / 2, radius / 2, 0, Math.PI * 2);
-      context.fillStyle = "rgba(243, 234, 212, 0.92)";
+      context.fillStyle = "rgba(246, 238, 225, 0.9)";
       context.fill();
 
       context.beginPath();
@@ -233,12 +233,12 @@ export function HomeBackgroundBagua({ variant = "home" }: HomeBackgroundBaguaPro
 
       context.beginPath();
       context.arc(0, radius / 2, radius * 0.11, 0, Math.PI * 2);
-      context.fillStyle = "rgba(243, 234, 212, 0.94)";
+      context.fillStyle = "rgba(246, 238, 225, 0.94)";
       context.fill();
 
       context.beginPath();
       context.arc(0, 0, radius, 0, Math.PI * 2);
-      context.strokeStyle = `rgba(246, 200, 123, ${variant === "home" ? 0.42 : 0.26})`;
+      context.strokeStyle = `rgba(211, 176, 107, ${variant === "home" ? 0.42 : 0.26})`;
       context.lineWidth = 1.8;
       context.stroke();
 

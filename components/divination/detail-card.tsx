@@ -11,15 +11,15 @@ type DetailCardProps = {
 
 export function DetailCard({ title, eyebrow, children, className }: DetailCardProps) {
   return (
-    <GlassPanel className={`p-5 sm:p-6 ${className ?? ""}`.trim()}>
+    <GlassPanel className={`paper-noise p-5 sm:p-6 ${className ?? ""}`.trim()}>
       <div className="space-y-4">
-        <div className="space-y-2">
+        <div className="space-y-2 ink-divider">
           {eyebrow ? (
-            <p className="text-[11px] uppercase tracking-[0.3em] text-[var(--color-accent-muted)]">
+            <p className="ink-eyebrow text-[11px]">
               {eyebrow}
             </p>
           ) : null}
-          <h2 className="text-xl font-semibold tracking-[0.06em] text-white">{title}</h2>
+          <h2 className="ink-title text-xl font-semibold sm:text-[1.35rem]">{title}</h2>
         </div>
         {children}
       </div>

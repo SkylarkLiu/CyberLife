@@ -24,20 +24,20 @@ export function ModuleShell({
 }: ModuleShellProps) {
   return (
     <main className="relative min-h-screen overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(103,122,255,0.12),transparent_24%),radial-gradient(circle_at_76%_18%,rgba(255,210,144,0.08),transparent_18%),linear-gradient(180deg,transparent,rgba(0,0,0,0.18))]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(117,106,82,0.16),transparent_24%),radial-gradient(circle_at_76%_18%,rgba(158,45,52,0.06),transparent_18%),linear-gradient(180deg,transparent,rgba(0,0,0,0.18))]" />
       <HomeBackgroundBagua variant="ambient" />
       <div className={`mx-auto flex w-full max-w-7xl flex-col gap-6 px-5 ${compact ? "py-2 sm:py-3" : "py-6 sm:py-8"} lg:px-8 xl:px-10`}>
         {showHeader ? (
-          <GlassPanel className="relative z-10 p-6 sm:p-8">
+          <GlassPanel className="paper-noise relative z-10 p-6 sm:p-8">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div className="max-w-3xl space-y-4">
-                <p className="text-xs uppercase tracking-[0.34em] text-[var(--color-accent-muted)]">
+                <p className="ink-eyebrow text-xs">
                   {subtitle}
                 </p>
-                <h1 className="text-4xl font-semibold tracking-[0.08em] text-white sm:text-5xl">
+                <h1 className="ink-display text-4xl font-semibold tracking-[0.08em] text-white sm:text-5xl">
                   {title}
                 </h1>
-                <p className="text-sm leading-7 text-[var(--color-text-soft)] sm:text-base">
+                <p className="font-serif text-sm leading-8 text-[var(--color-text-soft)] sm:text-base">
                   {description}
                 </p>
               </div>

@@ -177,7 +177,7 @@ export function LiuyaoPageContent() {
 
   return (
     <div className="space-y-5">
-      <div className="grid gap-6 lg:grid-cols-[minmax(23rem,26rem)_minmax(24rem,1fr)] xl:grid-cols-[minmax(24rem,27rem)_minmax(26rem,1fr)]">
+      <div className="grid gap-6 lg:grid-cols-[minmax(24rem,27rem)_minmax(24rem,1fr)] xl:grid-cols-[minmax(25rem,28rem)_minmax(28rem,1fr)]">
         <section>
           <LiuyaoInputPanel
             mode={mode}
@@ -201,15 +201,14 @@ export function LiuyaoPageContent() {
         </section>
 
         <section>
-          <GlassPanel className="p-5 sm:p-6">
+          <GlassPanel className="paper-noise p-5 sm:p-6">
             <div className="space-y-4">
               <div className="space-y-2">
-                <h2 className="text-xl font-semibold tracking-[0.06em] text-white">
-                  六爻结构预览
+                <p className="ink-eyebrow">盘面预览</p>
+                <h2 className="ink-display text-[1.65rem] text-white">
+                  先观爻象，再入断辞。
                 </h2>
-                <p className="text-[11px] tracking-[0.16em] text-white/42">
-                  第一爻在底部，第六爻在顶部
-                </p>
+                <div className="ink-divider" />
               </div>
               <HexagramLines lines={lines} activePosition={currentStep} />
             </div>
@@ -220,15 +219,14 @@ export function LiuyaoPageContent() {
       {/* ===== 下半屏：结果预览（仅在起卦后显示） ===== */}
       {result.status === "loading" && (
         <section ref={resultRef} className="space-y-4">
-          <GlassPanel className="p-5 sm:p-6">
+          <GlassPanel className="paper-noise p-5 sm:p-6">
             <div className="space-y-3">
-              <h2 className="text-xl font-semibold tracking-[0.06em] text-white">
-                结果预览
-              </h2>
+              <p className="ink-eyebrow">正在起卦</p>
+              <h2 className="ink-display text-[1.55rem] text-white">盘面正在凝定。</h2>
               <div className="space-y-3">
-                <div className="h-28 animate-pulse rounded-[1.25rem] border border-white/8 bg-white/4" />
-                <div className="h-40 animate-pulse rounded-[1.25rem] border border-white/8 bg-white/4" />
-                <div className="h-32 animate-pulse rounded-[1.25rem] border border-white/8 bg-white/4" />
+                <div className="h-28 animate-pulse rounded-[1.25rem] border border-[rgba(211,176,107,0.12)] bg-[rgba(255,245,225,0.04)]" />
+                <div className="h-40 animate-pulse rounded-[1.25rem] border border-[rgba(211,176,107,0.12)] bg-[rgba(255,245,225,0.04)]" />
+                <div className="h-32 animate-pulse rounded-[1.25rem] border border-[rgba(211,176,107,0.12)] bg-[rgba(255,245,225,0.04)]" />
               </div>
             </div>
           </GlassPanel>
@@ -237,11 +235,10 @@ export function LiuyaoPageContent() {
 
       {result.status === "error" && (
         <section ref={resultRef} className="space-y-4">
-          <GlassPanel className="p-5 sm:p-6">
+          <GlassPanel className="paper-noise p-5 sm:p-6">
             <div className="space-y-3">
-              <h2 className="text-xl font-semibold tracking-[0.06em] text-white">
-                起卦失败
-              </h2>
+              <p className="ink-eyebrow">起卦异常</p>
+              <h2 className="ink-display text-[1.55rem] text-white">此次推演未能完成。</h2>
               <p className="text-sm leading-7 text-[var(--color-text-soft)]">
                 {result.message}
               </p>

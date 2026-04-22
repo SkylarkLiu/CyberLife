@@ -1,6 +1,8 @@
+import type { ReactNode } from "react";
+
 type SectionHeadingProps = {
   eyebrow: string;
-  title: string;
+  title: ReactNode;
   description?: string;
   align?: "left" | "center";
 };
@@ -15,13 +17,16 @@ export function SectionHeading({
 
   return (
     <div className={`flex flex-col gap-3 ${alignment}`}>
-      <p className="text-xs font-medium uppercase tracking-[0.36em] text-[var(--color-accent-muted)]">
-        {eyebrow}
-      </p>
-      <div className="space-y-3">
-        <h2 className="text-3xl font-semibold tracking-[0.06em] text-white sm:text-4xl">{title}</h2>
+      <div className="flex items-center gap-3">
+        <span className="seal-dot" />
+        <p className="ink-eyebrow text-xs font-medium">
+          {eyebrow}
+        </p>
+      </div>
+      <div className="space-y-3 ink-divider">
+        <h2 className="ink-display text-4xl font-semibold leading-[1.08] text-white sm:text-5xl">{title}</h2>
         {description ? (
-          <p className="max-w-2xl text-sm leading-7 text-[var(--color-text-soft)] sm:text-base">
+          <p className="max-w-2xl font-serif text-sm leading-8 text-[var(--color-text-soft)] sm:text-base">
             {description}
           </p>
         ) : null}

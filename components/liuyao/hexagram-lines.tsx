@@ -23,8 +23,8 @@ export function HexagramLines({ lines, activePosition }: HexagramLinesProps) {
   const lineMap = new Map(lines.map((line) => [line.position, line]));
 
   return (
-    <div className="overflow-hidden rounded-[1.45rem] border border-white/8 bg-[rgba(255,255,255,0.03)]">
-      <div className="grid grid-cols-[4.2rem_minmax(0,1fr)_6rem] border-b border-white/8 bg-[rgba(255,255,255,0.035)] px-4 py-3 text-[11px] uppercase tracking-[0.22em] text-[var(--color-accent-muted)]">
+    <div className="paper-noise overflow-hidden rounded-[1.5rem] border border-[rgba(211,176,107,0.12)] bg-[linear-gradient(150deg,rgba(22,17,12,0.92),rgba(10,9,7,0.82))] shadow-[0_24px_60px_rgba(0,0,0,0.24)]">
+      <div className="grid grid-cols-[4.6rem_minmax(0,1fr)_6rem] border-b border-[rgba(211,176,107,0.08)] bg-[linear-gradient(180deg,rgba(255,244,221,0.05),rgba(255,244,221,0.01))] px-4 py-3 text-[11px] uppercase tracking-[0.24em] text-[var(--color-accent-muted)]">
         <span>爻位</span>
         <span className="text-center">爻象</span>
         <span className="text-right">状态</span>
@@ -39,11 +39,11 @@ export function HexagramLines({ lines, activePosition }: HexagramLinesProps) {
         return (
           <div
             key={position}
-            className={`grid grid-cols-[4.2rem_minmax(0,1fr)_6rem] items-center gap-4 border-t border-white/6 px-4 py-4 transition-all duration-300 first:border-t-0 ${
+            className={`grid grid-cols-[4.6rem_minmax(0,1fr)_6rem] items-center gap-4 border-t border-[rgba(211,176,107,0.06)] px-4 py-4 transition-all duration-300 first:border-t-0 ${
               isActive
-                ? "bg-[linear-gradient(90deg,rgba(246,200,123,0.08),transparent)]"
+                ? "bg-[linear-gradient(90deg,rgba(211,176,107,0.09),rgba(109,53,37,0.02),transparent)]"
                 : isSettled
-                  ? "bg-[rgba(255,255,255,0.018)]"
+                  ? "bg-[rgba(255,250,239,0.02)]"
                   : "bg-transparent"
             }`}
           >
@@ -51,7 +51,7 @@ export function HexagramLines({ lines, activePosition }: HexagramLinesProps) {
               <p
                 className={`text-xs font-medium tracking-[0.16em] ${
                   isActive
-                    ? "text-[rgba(246,200,123,0.9)]"
+                    ? "text-[rgba(230,199,134,0.92)]"
                     : isSettled
                       ? "text-[var(--color-accent-muted)]"
                       : "text-white/28"
@@ -65,14 +65,14 @@ export function HexagramLines({ lines, activePosition }: HexagramLinesProps) {
             <div className="flex flex-col items-center gap-3">
               {isSettled ? (
                 <div className="w-full max-w-[12rem]">
-                  <div className="h-3 rounded-full bg-[rgba(246,200,123,0.08)] p-[2px]">
+                  <div className="h-3 rounded-full bg-[rgba(211,176,107,0.08)] p-[2px]">
                     <div className={`flex h-full items-center gap-[6px] ${isYang ? "" : "justify-between"}`}>
                       {isYang ? (
-                        <span className="block h-full w-full rounded-full bg-[rgba(255,228,176,0.9)] shadow-[0_0_18px_rgba(246,200,123,0.18)]" />
+                        <span className="block h-full w-full rounded-full bg-[rgba(250,231,190,0.94)] shadow-[0_0_18px_rgba(211,176,107,0.2)]" />
                       ) : (
                         <>
-                          <span className="block h-full w-[42%] rounded-full bg-[rgba(255,228,176,0.9)] shadow-[0_0_18px_rgba(246,200,123,0.18)]" />
-                          <span className="block h-full w-[42%] rounded-full bg-[rgba(255,228,176,0.9)] shadow-[0_0_18px_rgba(246,200,123,0.18)]" />
+                          <span className="block h-full w-[42%] rounded-full bg-[rgba(250,231,190,0.94)] shadow-[0_0_18px_rgba(211,176,107,0.2)]" />
+                          <span className="block h-full w-[42%] rounded-full bg-[rgba(250,231,190,0.94)] shadow-[0_0_18px_rgba(211,176,107,0.2)]" />
                         </>
                       )}
                     </div>
@@ -93,14 +93,14 @@ export function HexagramLines({ lines, activePosition }: HexagramLinesProps) {
                 <span
                   className={`rounded-full border px-2.5 py-1 text-[10px] tracking-[0.18em] ${
                     isMoving
-                      ? "border-[rgba(140,167,255,0.22)] bg-[rgba(140,167,255,0.12)] text-[rgba(208,220,255,0.9)]"
-                      : "border-[rgba(246,200,123,0.18)] bg-[rgba(246,200,123,0.08)] text-[rgba(255,226,167,0.84)]"
+                      ? "border-[rgba(109,53,37,0.24)] bg-[rgba(109,53,37,0.12)] text-[rgba(246,220,207,0.9)]"
+                      : "border-[rgba(211,176,107,0.18)] bg-[rgba(211,176,107,0.08)] text-[rgba(255,226,167,0.84)]"
                   }`}
                 >
                   {isMoving ? "动爻" : "静爻"}
                 </span>
               ) : isActive ? (
-                <span className="text-[10px] tracking-[0.16em] text-[rgba(246,200,123,0.6)]">
+                <span className="text-[10px] tracking-[0.16em] text-[rgba(211,176,107,0.66)]">
                   当前
                 </span>
               ) : (
